@@ -15,7 +15,7 @@
 - [3. Tài khoản](#3-tài-khoản)
 - [4. Chức năng đã hoàn thành](#4-chức-năng-đã-hoàn-thành)
 - [5. Sơ đồ database](#5-sơ-đồ-database)
-- [6. Chưa làm và hướng phát triển](#6-chưa-làm-và-hướng-phát-triển)
+- [6. Chưa làm/hướng phát triển](#6-chưa-làmhướng-phát-triển)
 - [7. Video demo](#7-video-demo)
 
 ![screenshot img](images/screenshot.png)

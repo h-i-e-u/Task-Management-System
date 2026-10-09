@@ -16,6 +16,9 @@
 - [4. Chức năng đã hoàn thành](#4-chức-năng-đã-hoàn-thành)
 - [5. Sơ đồ database](#5-sơ-đồ-database)
 - [6. Chưa làm và hướng phát triển](#6-chưa-làm-và-hướng-phát-triển)
+- [7. Video demo](#7-video-demo)
+
+![screenshot img](images/screenshot.png)
 
 ## 1. Chạy nhanh bằng Docker (khuyên dùng)
 
@@ -90,9 +93,12 @@ Lưu ý: đổi `SEED_ADMIN_PASSWORD` rồi seed lại **không** đổi pass ad
 
 ![Sơ đồ database](images/db_schema.png)
 
-## 6. Chưa làm và hướng phát triển
+## 6. Chưa làm/hướng phát triển
 
-- Deploy demo public (cần làm để nộp bài cùng video demo 3–5 phút).
-- Test phía frontend (hiện chỉ backend có test).
-- Gửi mail thật cho quên mật khẩu (hiện demo trả token trực tiếp), realtime/websocket, thông báo.
+- Deploy public
+- Gửi mail thật cho quên mật khẩu.
 - Rate-limit endpoint auth public.
+
+## 7. Video demo
+
+[Link video demo](https://drive.google.com/file/d/1t0HgXPip-pG3cbvlui-GIIestQNqc2yN/view?usp=sharing)

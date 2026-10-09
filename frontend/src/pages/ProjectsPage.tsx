@@ -141,7 +141,7 @@ export default function ProjectsPage() {
                     <p className="font-medium text-slate-900">{p.name}</p>
                     {p.description && <p className="truncate text-xs text-slate-500">{p.description}</p>}
                   </td>
-                  <td className="px-4 py-2.5 text-slate-600">{p.owner?.email ?? "—"}</td>
+                  <td className="px-4 py-2.5 text-slate-600">{p.owner?.name ?? "—"}</td>
                   <td className="px-4 py-2.5 text-right tnum">{p._count?.members ?? 0}</td>
                   <td className="px-4 py-2.5 text-right tnum">{p._count?.tasks ?? 0}</td>
                 </tr>

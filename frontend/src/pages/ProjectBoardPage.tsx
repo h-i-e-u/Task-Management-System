@@ -60,8 +60,23 @@ export default function ProjectBoardPage() {
       <ProjectHeader project={project} onInvite={() => setTab("members")} />
       <ProjectTabs tab={tab} onChange={setTab} />
       <div key={tab}>
-        {tab === "board" && <KanbanTab project={project} assignees={assignees} canCreate={canCreate} />}
-        {tab === "list" && <TaskListTab project={project} assignees={assignees} canManage={canManage} />}
+        {tab === "board" && (
+          <KanbanTab
+            project={project}
+            assignees={assignees}
+            canCreate={canCreate}
+            canManage={canManage}
+            currentUserId={user?.id ?? ""}
+          />
+        )}
+        {tab === "list" && (
+          <TaskListTab
+            project={project}
+            assignees={assignees}
+            canManage={canManage}
+            currentUserId={user?.id ?? ""}
+          />
+        )}
         {tab === "activity" && <ActivityTab projectId={project.id} />}
         {tab === "members" && <MembersTab project={project} onChanged={loadMeta} />}
       </div>

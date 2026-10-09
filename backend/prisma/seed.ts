@@ -41,8 +41,9 @@ const SEED_PROJECTS: SeedProject[] = [
   {
     name: "Website bán hàng",
     description: "Xây dựng website thương mại điện tử cho khách hàng",
-    ownerEmail: "an@example.com",
+    ownerEmail: env.SEED_ADMIN_EMAIL,
     members: [
+      { email: "an@example.com", role: "LEAD" },
       { email: "binh@example.com", role: "MEMBER" },
       { email: "chi@example.com", role: "MEMBER" },
       { email: "dung@example.com", role: "MEMBER" },
@@ -124,8 +125,11 @@ const SEED_PROJECTS: SeedProject[] = [
   {
     name: "Hệ thống CRM",
     description: "Quản lý khách hàng và pipeline bán hàng",
-    ownerEmail: "chi@example.com",
-    members: [{ email: "binh@example.com", role: "MEMBER" }],
+    ownerEmail: env.SEED_ADMIN_EMAIL,
+    members: [
+      { email: "chi@example.com", role: "LEAD" },
+      { email: "binh@example.com", role: "MEMBER" },
+    ],
     tasks: [
       {
         title: "Import danh bạ từ Excel",
@@ -172,6 +176,12 @@ async function ensureProject(p: SeedProject, userIds: Map<string, string>): Prom
       data: { name: p.name, description: p.description, ownerId },
     });
     console.log(`Seeded project: ${p.name}`);
+  } else if (project.ownerId !== ownerId) {
+    project = await prisma.project.update({
+      where: { id: project.id },
+      data: { ownerId },
+    });
+    console.log(`Updated owner of project: ${p.name}`);
   }
   await prisma.projectMember.upsert({
     where: { projectId_userId: { projectId: project.id, userId: ownerId } },

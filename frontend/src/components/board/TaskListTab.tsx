@@ -7,7 +7,6 @@ import {
   PriorityBadge,
   SelectInput,
   SkeletonRows,
-  StatusDot,
   TextInput,
   formatDate,
 } from "../ui";
@@ -21,9 +20,22 @@ interface Props {
   project: BoardProject;
   assignees: Array<{ id: string; name: string | null; email: string }>;
   canManage: boolean;
+  currentUserId: string;
 }
 
-export default function TaskListTab({ project, assignees, canManage }: Props) {
+const NO_STATUS_RIGHT = "Chỉ người được gán, người tạo hoặc Owner/LEAD mới đổi được trạng thái";
+const NO_ASSIGN_RIGHT = "Chỉ người tạo hoặc Owner/LEAD mới gán lại được";
+const NO_MANAGE_RIGHT = "Cần quyền Owner/LEAD/Superadmin";
+
+function canEditStatus(task: Task, canManage: boolean, userId: string): boolean {
+  return canManage || task.assigneeId === userId || task.creatorId === userId;
+}
+
+function canReassign(task: Task, canManage: boolean, userId: string): boolean {
+  return canManage || task.creatorId === userId;
+}
+
+export default function TaskListTab({ project, assignees, canManage, currentUserId }: Props) {
   const [items, setItems] = useState<Task[]>([]);
   const [total, setTotal] = useState(0);
   const [skip, setSkip] = useState(0);
@@ -149,7 +161,7 @@ export default function TaskListTab({ project, assignees, canManage }: Props) {
         <Button onClick={onSearch}>Tìm</Button>
       </div>
 
-      {canManage && (
+      <div>
         <div className="flex gap-2">
           <div className="flex-1">
             <TextInput
@@ -157,16 +169,21 @@ export default function TaskListTab({ project, assignees, canManage }: Props) {
               onChange={(e) => setQuickTitle(e.target.value)}
               placeholder="Tạo nhanh: nhập tiêu đề rồi Enter…"
               aria-label="Tạo nhanh task"
+              disabled={!canManage}
+              title={canManage ? undefined : NO_MANAGE_RIGHT}
               onKeyDown={(e) => {
                 if (e.key === "Enter") void onQuickCreate();
               }}
             />
           </div>
-          <Button onClick={() => void onQuickCreate()} disabled={!quickTitle.trim()}>
-            Thêm
-          </Button>
+          <span title={canManage ? undefined : NO_MANAGE_RIGHT}>
+            <Button onClick={() => void onQuickCreate()} disabled={!canManage || !quickTitle.trim()}>
+              Thêm
+            </Button>
+          </span>
         </div>
-      )}
+        {!canManage && <p className="mt-1 text-xs text-slate-500">{NO_MANAGE_RIGHT} để tạo task.</p>}
+      </div>
 
       {error && <ErrorAlert message={error} />}
 
@@ -189,27 +206,39 @@ export default function TaskListTab({ project, assignees, canManage }: Props) {
             </thead>
             <tbody>
               {items.map((t) => (
-                <tr key={t.id}>
-                  <td colSpan={6} className="border-b border-slate-100 p-0 last:border-0">
-                    <div className="px-4 py-2.5 hover:bg-slate-50">
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                        <span className="min-w-40 flex-1 font-medium text-slate-900">{t.title}</span>
+                <>
+                  <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <td className="max-w-55 px-4 py-2.5">
+                      <p className="truncate font-medium text-slate-900" title={t.title}>
+                        {t.title}
+                      </p>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span title={canEditStatus(t, canManage, currentUserId) ? undefined : NO_STATUS_RIGHT}>
                         <SelectInput
                           value={t.status}
                           onChange={(e) => void onStatusChange(t, e.target.value as TaskStatus)}
                           aria-label={`Đổi trạng thái ${t.title}`}
                           className="text-xs"
+                          disabled={!canEditStatus(t, canManage, currentUserId)}
                         >
                           <option value="TODO">Cần làm</option>
                           <option value="IN_PROGRESS">Đang làm</option>
                           <option value="DONE">Xong</option>
                         </SelectInput>
-                        <PriorityBadge priority={t.priority} />
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <PriorityBadge priority={t.priority} />
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span title={canReassign(t, canManage, currentUserId) ? undefined : NO_ASSIGN_RIGHT}>
                         <SelectInput
                           value={t.assigneeId ?? ""}
                           onChange={(e) => void onAssigneeChange(t, e.target.value)}
                           aria-label={`Đổi người thực hiện ${t.title}`}
                           className="max-w-40 text-xs"
+                          disabled={!canReassign(t, canManage, currentUserId)}
                         >
                           <option value="">Chưa gán</option>
                           {assignees.map((a) => (
@@ -218,27 +247,39 @@ export default function TaskListTab({ project, assignees, canManage }: Props) {
                             </option>
                           ))}
                         </SelectInput>
-                        <span className="text-xs text-slate-500 tnum">{formatDate(t.dueDate)}</span>
-                        <Button variant="ghost" className="px-2 py-1 text-xs" onClick={() => setOpenHistory((v) => (v === t.id ? null : t.id))}>
-                          Lịch sử
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-xs whitespace-nowrap text-slate-500 tnum">
+                      {formatDate(t.dueDate)}
+                    </td>
+                    <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                      <Button
+                        variant="ghost"
+                        className="px-2 py-1 text-xs"
+                        onClick={() => setOpenHistory((v) => (v === t.id ? null : t.id))}
+                      >
+                        Lịch sử
+                      </Button>
+                      <span title={canManage ? undefined : NO_MANAGE_RIGHT}>
+                        <Button
+                          variant="dangerText"
+                          className="px-2 py-1 text-xs"
+                          disabled={!canManage}
+                          onClick={() => void onDelete(t)}
+                        >
+                          Xóa
                         </Button>
-                        {canManage && (
-                          <Button variant="dangerText" className="px-2 py-1 text-xs" onClick={() => void onDelete(t)}>
-                            Xóa
-                          </Button>
-                        )}
-                      </div>
-                      <div className="mt-1 flex items-center gap-2">
-                        <StatusDot status={t.status} />
-                      </div>
-                      {openHistory === t.id && (
-                        <div className="mt-2 border-t border-slate-100 pt-2">
-                          <TaskHistory taskId={t.id} />
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+                      </span>
+                    </td>
+                  </tr>
+                  {openHistory === t.id && (
+                    <tr key={`${t.id}-history`} className="border-b border-slate-100 bg-slate-50/60">
+                      <td colSpan={6} className="px-4 py-2.5">
+                        <TaskHistory taskId={t.id} />
+                      </td>
+                    </tr>
+                  )}
+                </>
               ))}
             </tbody>
           </table>

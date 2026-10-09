@@ -31,8 +31,8 @@ export default function LoginPage() {
       <div style={{ width: 380 }} className="max-w-full">
         <Card className="p-7">
           <div className="mb-5 text-center">
-            <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-600 text-lg font-bold text-white">
-              1i
+            <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-lg font-bold text-white">
+              TMS
             </span>
             <h1 className="mt-3 text-lg font-semibold tracking-tight text-slate-900">Chào mừng trở lại</h1>
             <p className="mt-0.5 text-sm text-slate-500">Đăng nhập để quản lý công việc nhóm</p>
@@ -78,7 +78,7 @@ export default function LoginPage() {
           </form>
         </Card>
         <p className="mt-4 text-center text-xs text-slate-500">
-          Hệ thống quản lý công việc nhóm — an toàn, nhanh, đơn giản.
+          Hệ thống quản lý công việc nhóm - Task Management System.
         </p>
       </div>
     </div>

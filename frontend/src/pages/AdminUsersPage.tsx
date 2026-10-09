@@ -96,7 +96,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-xl font-semibold tracking-tight text-slate-900">Admin Users</h1>
+      <h1 className="text-xl font-semibold tracking-tight text-slate-900">Admin - Users Control Panel</h1>
 
       <Card className="p-4">
         <SectionTitle>Tạo thành viên mới</SectionTitle>

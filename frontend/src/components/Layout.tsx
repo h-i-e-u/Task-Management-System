@@ -21,10 +21,10 @@ export default function Layout() {
     <div className="flex min-h-screen">
       <aside className="flex w-60 shrink-0 flex-col bg-slate-50" style={{ width: 240 }}>
         <div className="flex items-center gap-2 px-5 pt-6 pb-4">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-base font-bold text-white">
-            1i
+          <span className="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-600 text-base font-bold text-white">
+            TMS
           </span>
-          <span className="text-sm font-semibold tracking-tight text-slate-900">Task Manager</span>
+          <span className="text-sm font-semibold tracking-tight text-slate-900">Task Management System</span>
         </div>
         <nav className="flex flex-col gap-1 px-3" aria-label="Chính">
           <NavLink to="/dashboard" className={linkCls}>
@@ -38,7 +38,7 @@ export default function Layout() {
           {user?.role === "SUPERADMIN" && (
             <NavLink to="/admin/users" className={linkCls}>
               <Users size={17} aria-hidden />
-              <span>Admin Users</span>
+              <span>Users</span>
             </NavLink>
           )}
         </nav>

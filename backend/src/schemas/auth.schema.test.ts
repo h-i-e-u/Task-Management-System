@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   adminCreateUserSchema,
   adminUpdateUserSchema,
+  changePasswordSchema,
+  forgotPasswordSchema,
   loginSchema,
   refreshSchema,
+  resetPasswordSchema,
 } from "./auth.schema.js";
 
 describe("loginSchema", () => {
@@ -45,13 +48,41 @@ describe("adminCreateUserSchema", () => {
   });
 });
 
-describe("adminUpdateUserSchema", () => {
-  it("accepts partial updates and nullable name", () => {
+describe("adminUpdateUserSchema", () => {  it("accepts partial updates and nullable name", () => {
     expect(adminUpdateUserSchema.parse({ status: "LOCKED" })).toEqual({ status: "LOCKED" });
     expect(adminUpdateUserSchema.parse({ name: null })).toEqual({ name: null });
   });
 
   it("has no role field", () => {
     expect(adminUpdateUserSchema.parse({ role: "SUPERADMIN" })).toEqual({});
+  });
+});
+
+describe("changePasswordSchema", () => {
+  it("accepts current + new password", () => {
+    expect(changePasswordSchema.parse({ currentPassword: "old", newPassword: "newpass1" })).toEqual({
+      currentPassword: "old",
+      newPassword: "newpass1",
+    });
+  });
+
+  it("rejects short new passwords", () => {
+    expect(() => changePasswordSchema.parse({ currentPassword: "old", newPassword: "123" })).toThrow();
+  });
+});
+
+describe("forgotPasswordSchema", () => {
+  it("accepts email only", () => {
+    expect(forgotPasswordSchema.parse({ email: "a@b.co" })).toEqual({ email: "a@b.co" });
+    expect(() => forgotPasswordSchema.parse({ email: "nope" })).toThrow();
+  });
+});
+
+describe("resetPasswordSchema", () => {
+  it("accepts token + new password", () => {
+    expect(resetPasswordSchema.parse({ token: "tok", newPassword: "newpass1" })).toEqual({
+      token: "tok",
+      newPassword: "newpass1",
+    });
   });
 });

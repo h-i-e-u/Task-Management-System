@@ -21,6 +21,7 @@ export const env = {
     .filter(Boolean),
   JWT_ACCESS_SECRET: required("JWT_ACCESS_SECRET"),
   JWT_REFRESH_SECRET: required("JWT_REFRESH_SECRET"),
+  JWT_RESET_SECRET: required("JWT_RESET_SECRET"),
   SEED_ADMIN_EMAIL: process.env.SEED_ADMIN_EMAIL ?? "admin@example.com",
   SEED_ADMIN_PASSWORD: process.env.SEED_ADMIN_PASSWORD ?? "Admin123!",
 };

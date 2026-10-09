@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LayoutDashboard, FolderKanban, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, FolderKanban, Users, UserRound, LogOut } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { Avatar } from "./ui";
 
@@ -34,6 +34,10 @@ export default function Layout() {
           <NavLink to="/projects" className={linkCls}>
             <FolderKanban size={17} aria-hidden />
             <span>Projects</span>
+          </NavLink>
+          <NavLink to="/account" className={linkCls}>
+            <UserRound size={17} aria-hidden />
+            <span>Tài khoản</span>
           </NavLink>
           {user?.role === "SUPERADMIN" && (
             <NavLink to="/admin/users" className={linkCls}>

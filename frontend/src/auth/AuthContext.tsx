@@ -13,6 +13,8 @@ interface AuthState {
   user: SafeUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name?: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -47,6 +49,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const register = useCallback(
+    async (email: string, password: string, name?: string): Promise<void> => {
+      try {
+        const res = await api.post<{ accessToken: string; refreshToken: string; user: SafeUser }>(
+          "/auth/register",
+          { email, password, name: name || undefined },
+        );
+        setTokenPair(res.data.accessToken, res.data.refreshToken);
+        setUser(res.data.user);
+        navigate("/dashboard");
+      } catch (err: unknown) {
+        throw new Error(backendMessage(err, "Đăng ký thất bại"));
+      }
+    },
+    [navigate],
+  );
   const login = useCallback(
     async (email: string, password: string): Promise<void> => {
       try {
@@ -64,8 +82,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [navigate],
   );
 
-  const logout = useCallback(async (): Promise<void> => {
-    try {
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string): Promise<void> => {
+      try {
+        const res = await api.post<{ accessToken: string; refreshToken: string }>(
+          "/auth/change-password",
+          { currentPassword, newPassword },
+        );
+        setTokenPair(res.data.accessToken, res.data.refreshToken);
+      } catch (err: unknown) {
+        throw new Error(backendMessage(err, "Đổi mật khẩu thất bại"));
+      }
+    },
+    [],
+  );
+
+  const logout = useCallback(async (): Promise<void> => {    try {
       const stored = getStoredRefreshToken();
       await api.post("/auth/logout", stored ? { refreshToken: stored } : {});
     } catch {
@@ -77,7 +109,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [navigate]);
 
-  const value = useMemo(() => ({ user, loading, login, logout }), [user, loading, login, logout]);
+  const value = useMemo(
+    () => ({ user, loading, login, register, changePassword, logout }),
+    [user, loading, login, register, changePassword, logout],
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

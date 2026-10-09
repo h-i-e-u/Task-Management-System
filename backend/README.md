@@ -31,6 +31,10 @@ npm run dev
 ## Auth
 
 - `POST /api/auth/login` → `{ accessToken (1h), refreshToken (7d), user }`
+- `POST /api/auth/register` → public, luôn MEMBER (trùng email → 409), trả cặp token luôn
+- `POST /api/auth/change-password` → cần login, xoay vòng refresh token
+- `POST /api/auth/forgot-password` → luôn 200 (dev trả `resetToken`, hạn 15 phút)
+- `POST /api/auth/reset-password` → đặt lại bằng token, thu hồi refresh cũ
 - `POST /api/auth/refresh` → rotates pair (old token → 401)
 - `POST /api/auth/logout` → always 200
 - `GET /api/auth/me` → bearer required

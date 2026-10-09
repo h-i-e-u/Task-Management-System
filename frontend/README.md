@@ -22,5 +22,5 @@ Backend phải đang chạy ở `VITE_API_URL` (xem `../backend/README.md`).
 - `src/lib/api.ts` — axios + access token trong RAM, refresh trong localStorage, tự refresh 1 lần khi 401.
 - `src/auth/` — AuthContext (login/logout/me).
 - `src/components/ui.tsx` — Button/Card/Input/StatusDot/PriorityBadge/Avatar/EmptyState/Skeleton…
-- `src/pages/` — Login, Dashboard, Projects, ProjectBoard (`/projects/:id/board`), AdminUsers.
+- `src/pages/` — Login, Register, Forgot/ResetPassword, Account (đổi pass), Dashboard, Projects, ProjectBoard (`/projects/:id/board`), AdminUsers.
 - `src/components/board/` — ProjectHeader/Tabs, KanbanTab (kéo thả dnd-kit), TaskListTab, MembersTab, ActivityTab, CreateTaskModal.

@@ -1,8 +1,22 @@
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { prisma } from "../db/prisma.js";
-import { loginSchema, refreshSchema } from "../schemas/auth.schema.js";
-import { signAccessToken, signRefreshToken, verifyRefreshTokenJwt } from "../utils/jwt.js";
+import {
+  adminCreateUserSchema,
+  changePasswordSchema,
+  forgotPasswordSchema,
+  loginSchema,
+  refreshSchema,
+  resetPasswordSchema,
+} from "../schemas/auth.schema.js";
+import {
+  signAccessToken,
+  signPasswordResetToken,
+  signRefreshToken,
+  verifyPasswordResetToken,
+  verifyRefreshTokenJwt,
+} from "../utils/jwt.js";
+import { env } from "../config/env.js";
 import { hashRefreshToken, verifyRefreshToken } from "../utils/tokenHash.js";
 import { httpError } from "../middlewares/errorHandler.js";
 
@@ -14,6 +28,24 @@ async function issuePair(userId: string) {
     data: { refreshTokenHash: hashRefreshToken(refreshToken) },
   });
   return { accessToken, refreshToken };
+}
+
+export async function register(req: Request, res: Response): Promise<void> {
+  const data = adminCreateUserSchema.parse(req.body);
+  const user = await prisma.user.create({
+    data: {
+      email: data.email,
+      name: data.name,
+      passwordHash: await bcrypt.hash(data.password, 10),
+      role: "MEMBER",
+      status: "ACTIVE",
+    },
+  });
+  const pair = await issuePair(user.id);
+  res.status(201).json({
+    ...pair,
+    user: { id: user.id, email: user.email, name: user.name, role: user.role, status: user.status },
+  });
 }
 
 export async function login(req: Request, res: Response): Promise<void> {
@@ -73,4 +105,50 @@ export async function me(req: Request, res: Response): Promise<void> {
   });
   if (!user) throw httpError(401, "User not found");
   res.json(user);
+}
+
+export async function changePassword(req: Request, res: Response): Promise<void> {
+  const { currentPassword, newPassword } = changePasswordSchema.parse(req.body);
+  const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+  if (!user) throw httpError(401, "User not found");
+  const ok = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!ok) throw httpError(401, "Current password is incorrect");
+  const pair = await issuePair(user.id);
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash: await bcrypt.hash(newPassword, 10) },
+  });
+  res.json({ ...pair, message: "Password changed" });
+}
+
+export async function forgotPassword(req: Request, res: Response): Promise<void> {
+  const { email } = forgotPasswordSchema.parse(req.body);
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user || user.status !== "ACTIVE") {
+    res.json({ message: "If the email exists, a reset link has been sent" });
+    return;
+  }
+  const resetToken = signPasswordResetToken(user.id);
+  console.log(`Password reset token for ${email}: ${resetToken}`);
+  res.json({
+    message: "If the email exists, a reset link has been sent",
+    ...(env.NODE_ENV === "production" ? {} : { resetToken }),
+  });
+}
+
+export async function resetPassword(req: Request, res: Response): Promise<void> {
+  const { token, newPassword } = resetPasswordSchema.parse(req.body);
+  let sub: string;
+  try {
+    sub = verifyPasswordResetToken(token).sub;
+  } catch {
+    throw httpError(401, "Invalid or expired reset token");
+  }
+  const user = await prisma.user.findUnique({ where: { id: sub } });
+  if (!user || user.status !== "ACTIVE") throw httpError(401, "Invalid or expired reset token");
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash: await bcrypt.hash(newPassword, 10), refreshTokenHash: null },
+  });
+  res.json({ message: "Password has been reset" });
 }

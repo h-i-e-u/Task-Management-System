@@ -1,90 +1,98 @@
-# Đề bài tuyển dụng Intern: Task Management System
+# Task Management System
 
-Mini Project · Backend / Fullstack Developer · Thời gian: 2–3 ngày
+Ứng dụng quản lý công việc nhóm: backend API + frontend Kanban. Người dùng đăng ký/đăng nhập, tạo project, mời member, quản lý task (kéo thả đổi trạng thái), theo dõi dashboard.
 
-## Quy trình làm bài 
+| Thành phần | Công nghệ |
+| --- | --- |
+| Backend | Node 22, Express 5, TypeScript strict, Prisma v6, PostgreSQL, Zod, JWT, Swagger UI |
+| Frontend | Vite, React 19, TypeScript strict, Tailwind v4, axios, react-router-dom v7, dnd-kit, lucide-react |
+| Hạ tầng | Docker Compose, GitHub Actions CI, vitest |
 
-Quy trình làm bài: 
-- Fork repo về sau đó làm bài trên repo đó
-- Sau khi làm bài xong tạo Pull request vào Repo gốc
-- Gửi link PR và mô tả lại bài làm để nộp bài
+## Mục lục
 
-![Kanban Project Management Dashboard UI for SaaS Platform by Creliq UX/UI Design Agency on Dribbble](https://raw.githubusercontent.com/TechVanguardVn/Task-Management-System/refs/heads/main/images/demo.jpeg)
+- [1. Chạy nhanh bằng Docker (khuyên dùng)](#1-chạy-nhanh-bằng-docker-khuyên-dùng)
+- [2. Chạy local (không Docker)](#2-chạy-local-không-docker)
+- [3. Tài khoản](#3-tài-khoản)
+- [4. Chức năng đã hoàn thành](#4-chức-năng-đã-hoàn-thành)
+- [5. Sơ đồ database](#5-sơ-đồ-database)
+- [6. Chưa làm và hướng phát triển](#6-chưa-làm-và-hướng-phát-triển)
 
-## 1. Mục tiêu dự án
+## 1. Chạy nhanh bằng Docker (khuyên dùng)
 
-Xây dựng một ứng dụng quản lý công việc cá nhân hoặc nhóm nhỏ, cho phép người dùng tạo, cập nhật, theo dõi tiến độ và quản lý các công việc của mình.
+```bash
+docker compose up --build
+```
 
-Ứng viên được tự chọn công nghệ phù hợp với vị trí ứng tuyển. Dự án cần có source code, database, tài liệu hướng dẫn chạy và API nếu có Backend.
+- Frontend: http://localhost:5173 (đăng ký / đăng nhập tại đây)
+- Backend: http://localhost:3000/api — Swagger: http://localhost:3000/api-docs
+- Lần đầu backend tự chạy migration + seed dữ liệu mẫu.
+- Dọn sạch DB của stack: `docker compose down -v`
 
-## 2. Yêu cầu chức năng
+> Docker **không đọc** `backend/.env` (đã loại khỏi image). Đổi secret/pass seed cho Docker bằng file `.env` ở **thư mục gốc**:
+> ```env
+> POSTGRES_PASSWORD=123456
+> JWT_ACCESS_SECRET=...
+> JWT_REFRESH_SECRET=...
+> SEED_ADMIN_PASSWORD=Admin123!
+> ```
 
-### A. Chức năng bắt buộc (MVP)
+## 2. Chạy local (không Docker)
 
-1. Quản lý tài khoản
+Cần PostgreSQL ở `localhost:5433`, DB `ichi_db` (sửa trong `backend/.env` nếu khác).
 
-* Đăng ký, đăng nhập, đăng xuất.
+```bash
+# Backend
+cd backend
+npm install
+cp .env.example .env   # rồi điền secret
+npx prisma migrate dev
+npm run prisma:seed
+npm run dev            # http://localhost:3000
 
-* Mật khẩu phải được mã hóa an toàn.
+# Frontend (terminal khác)
+cd frontend
+npm install
+npm run dev            # http://localhost:5173
+```
 
-* Người dùng chỉ được truy cập dữ liệu của mình.
+## 3. Tài khoản
 
-2. Quản lý công việc (Task CRUD)
+| Loại | Email | Mật khẩu |
+| --- | --- | --- |
+| SUPERADMIN (seed) | `admin@example.com` | theo `SEED_ADMIN_PASSWORD` |
+| Member mẫu (seed) | `an@`, `binh@`, `chi@`, `dung@example.com` | `member123` (hoặc `SEED_MEMBER_PASSWORD`) |
+| Tự đăng ký | trang **Đăng ký** (`/register`) | tự đặt (≥ 6 ký tự) |
 
-* Tạo, xem, sửa, xóa công việc.
+Lưu ý: đổi `SEED_ADMIN_PASSWORD` rồi seed lại **không** đổi pass admin đã tồn tại (seed dùng upsert không ghi đè).
 
-* Mỗi task có tiêu đề, mô tả, trạng thái, mức ưu tiên, hạn hoàn thành.
+## 4. Chức năng đã hoàn thành
 
-* Trạng thái: `TODO`, `IN_PROGRESS`, `DONE`.
+| # | Chức năng | Chi tiết |
+| --- | --- | --- |
+| 1 | Đăng ký public | Luôn `MEMBER`, chống trùng email (409), chặn nâng role, trả token luôn |
+| 2 | Đăng nhập/đăng xuất | Access 1h + refresh 7d xoay vòng (lưu SHA-256); tài khoản khóa vẫn 403 dù token còn hạn |
+| 3 | Đổi mật khẩu | Cần login, xác thực pass hiện tại, xoay vòng token (đăng xuất các phiên khác) |
+| 4 | Quên/đặt lại mật khẩu | Token riêng hạn 15 phút, không lộ email tồn tại; dev trả token trực tiếp (chưa có mail server) |
+| 5 | Quản lý user (SUPERADMIN) | Tạo MEMBER, khóa/mở khóa/xóa (chống tự khóa/tự xóa/khóa admin khác) |
+| 6 | Project | SUPERADMIN tạo, owner tự động LEAD, phân quyền scope (ngoài scope 404 chung) |
+| 7 | Member | Mời (userId/email), đổi LEAD/MEMBER, xóa (trừ owner), `GET /projects/mine` kèm vai trò + việc dở |
+| 8 | Task CRUD | Tiêu đề/mô tả/trạng thái/ưu tiên/hạn; assignee phải là member/owner ACTIVE |
+| 9 | Tìm kiếm/lọc/phân trang | Quét tiêu đề + mô tả, lọc status/priority/assignee, `take` tối đa 100 |
+| 10 | Kanban | Kéo thả đổi cột (optimistic + rollback), endpoint `/status` riêng, F5 giữ cột |
+| 11 | Lịch sử task | Log khai sinh + mọi lần đổi (ai, khi nào), tab Activity theo project |
+| 12 | Dashboard admin | `GLOBAL`: tổng/byStatus/quá hạn/sắp hạn 7 ngày + thống kê user + mọi project |
+| 13 | Dashboard member | `PROJECTS` + `PERSONAL`: việc của tôi quá hạn/sắp hạn/sắp đến hạn |
+| 14 | Tài liệu API | Swagger UI tại `/api-docs` |
+| 15 | Seed demo | 5 user, 3 project, 9 task + log trạng thái, chạy lại không trùng |
+| 16 | Test + CI + Docker | 38 unit test backend, GitHub Actions (test/typecheck/build), Compose full stack |
 
-3. Tìm kiếm và lọc
+## 5. Sơ đồ database
 
-* Tìm kiếm theo tiêu đề.
+![Sơ đồ database](images/db_schema.png)
 
-* Lọc theo trạng thái và mức ưu tiên.
+## 6. Chưa làm và hướng phát triển
 
-* Có phân trang nếu dữ liệu lớn.
-
-4. Dashboard
-
-* Tổng số task.
-
-* Số task đã hoàn thành, đang thực hiện và chưa bắt đầu.
-
-* Hiển thị danh sách công việc sắp đến hạn.
-
-### B. Chức năng cộng điểm (không bắt buộc)
-
-* Giao diện Kanban, kéo thả task giữa các trạng thái.
-
-* Docker Compose để khởi chạy ứng dụng.
-
-* Unit test hoặc integration test.
-
-* Swagger/OpenAPI cho tài liệu API.
-
-* CI pipeline chạy test khi push code.
-
-* Deploy demo lên server hoặc nền tảng cloud.
-
-## 3. Công nghệ đề xuất
-
-- Ứng viên được thỏa sức chọn lựa công nghệ
-- Gợi ý công nghệ có thể dùng ví dụ: nodejs, PHP/Laravel,...
-
-## 4. Thiết kế database tham khảo
-
-Ứng viên tự thiết kế sao cho đáp ứng nhu cầu đề bài
-Yêu cầu: có migration tạo bảng, khóa ngoại và các ràng buộc dữ liệu phù hợp.
-
-## 5. Sản phẩm ứng viên phải bàn giao
-
-### Checklist bàn giao
-
-- Pull Request tạo vào repo gốc
-- README: hướng dẫn cài đặt và chạy dự án
-- File .env.example, không chứa secret thật
-- Database migration và dữ liệu mẫu/seed
-- API documentation hoặc hướng dẫn sử dụng
-- Danh sách chức năng đã hoàn thành và chức năng chưa hoàn thành
-- Video demo 3–5 phút hoặc buổi demo trực tiếp
+- Deploy demo public (cần làm để nộp bài cùng video demo 3–5 phút).
+- Test phía frontend (hiện chỉ backend có test).
+- Gửi mail thật cho quên mật khẩu (hiện demo trả token trực tiếp), realtime/websocket, thông báo.
+- Rate-limit endpoint auth public.

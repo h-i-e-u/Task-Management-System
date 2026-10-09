@@ -27,6 +27,7 @@ services:
       CORS_ORIGIN: http://localhost:5173
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-access-min-32-chars}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-refresh-min-32-chars}
+      JWT_RESET_SECRET: ${JWT_RESET_SECRET:-change-me-reset-min-32-chars}
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@example.com}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-admin123}
     ports:

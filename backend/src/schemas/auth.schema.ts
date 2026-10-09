@@ -22,5 +22,19 @@ export const adminUpdateUserSchema = z.object({
   status: z.enum(["ACTIVE", "LOCKED"]).optional(),
 });
 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1).max(128),
+  newPassword: z.string().min(6).max(72),
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email().max(255),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1).max(4096),
+  newPassword: z.string().min(6).max(72),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RefreshInput = z.infer<typeof refreshSchema>;
